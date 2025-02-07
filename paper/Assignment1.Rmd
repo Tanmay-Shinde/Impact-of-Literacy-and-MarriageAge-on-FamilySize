@@ -97,14 +97,23 @@ if(FALSE) save(portugal, file='portugal.RData')
 
 ## Literature Review and Importance of Study
 
+Understanding the relationship between literacy, age at marriage, and family size is crucial for addressing key societal challenges. Population growth remains a pressing issue, particularly in regions with high fertility rates. Studies have shown that improved literacy rates and delayed marriage can contribute to population control by reducing overall fertility. Moreover, smaller family sizes are associated with better child health outcomes due to increased parental investment per child, leading to improved nutrition, education, and healthcare access. From an economic perspective, a population with a larger proportion of working-age adults—facilitated by smaller family sizes—can drive economic growth by enhancing workforce productivity and reducing dependency ratios. Additionally, promoting female education and delaying marriage are powerful tools for advancing gender equality, empowering women to pursue education and career opportunities, and improving their decision-making autonomy within households. These factors highlight the relevance of this study in informing policies aimed at fostering sustainable development, improved public health, and social equity. !--- make this shorter and relevant ciattions for this. May be not mention population because that is not a concern for portugal ---!
+
+Previous research has established strong correlations between literacy, marriage age, and fertility outcomes. One study found that literate women were significantly more likely to use contraception (54% vs. 43%, p = 0.008), undergo sterilization (94% vs. 44%, p < 0.001), and have fewer children. Additionally, they demonstrated better family planning knowledge and a reduced preference for male children (51% vs. 73%, p = 0.029). Another study found that rural women expressed a higher preference for large families, with 32.1% desiring six or more children. Education played a crucial role in fertility preferences, as 72% of women and 83.6% of men who favored smaller families had at least a secondary education. A third study highlighted the impact of early marriage, showing that women who married before the age of 20 had, on average, one more child than those who married between 25 and 29. Early marriage was linked to higher fertility due to prolonged childbearing periods and lower contraceptive efficiency. Regression analysis indicated that family size was influenced by fecundity, contraceptive use, and social selection factors, reinforcing the association between early marriage and larger families. NEED TO ADD CITATIONS
+
 ## Research Objective and Statistical Overview
+
+Building on these findings, our study aims to investigate the extent to which literacy and age at marriage influence family size in Portugal, a developing economy. Specifically, we seek to determine whether higher literacy rates and delayed marriage lead to smaller family sizes and to what degree these factors interact. By synthesizing insights from prior research which were also mostly based in developing economies, we aim to contribute to a more nuanced understanding of how educational and marital timing interventions can shape reproductive behavior and demographic trends in Portugal. To achieve this, we will employ a generalized linear model (GLM) to analyze the impact of literacy and marriage age on family size. This statistical approach will allow us to quantify the effects of these variables while controlling for other relevant factors such as socioeconomic status, geographic location, and gender composition of children. By examining the coefficients derived from the model, we can assess the relative influence of literacy and marital timing on fertility outcomes, providing evidence-based recommendations for policymakers and public health initiatives.
 
 
 # Methods {#methods}
 
-## Statistical Model and Justification
+Our study will use the number of children per woman as the main response variable. The key predictor variables will be the age at marriage, literacy rate, and region. These predictors are included because previous research suggests that literacy and delayed marriage reduce fertility, and regional differences can capture cultural and economic factors influencing family size.
+To model the relationship between these variables, we will initially fit a Poisson generalized linear model (GLM). A Poisson model is appropriate because our response variable consists of count data, which are non-negative and right-skewed. We assume that the number of children born to each woman follows a homogeneous Poisson process, meaning that each birth is independent and uniformly distributed over time. This assumption justifies using the Poisson distribution, which is commonly applied to model count data in similar demographic studies.
 
-## Model Overview
+Next, we will conduct exploratory data analysis to assess the relationships between predictors and their potential interactions. We will use box plots to visualize how two predictors together influence the number of children and whether interactions need to be incorporated into the model. Additionally, we will check for overdispersion by examining the standard errors and estimates of the predictors. If overdispersion is present, meaning the variance is greater than the mean, we will account for it by fitting a negative binomial model, which allows for additional variability in count data. The negative binomial model is particularly useful because it introduces a dispersion parameter, enabling it to handle overdispersed data more effectively than the Poisson model.
+
+Furthermore, we will analyze scatter plots to determine if our data is comparable across different predictor variables. This will help us decide whether an offset term should be included in our model to account for exposure differences among women. Finally, we will compare model fits using statistical criteria, selecting the model that best accounts for overdispersion, interaction effects, and any additional structural patterns in the data. By systematically evaluating these considerations, we aim to produce a robust and interpretable model for understanding the influence of literacy and marriage age on family size.  Add stuff about how we will confirm variations and statistical significance
 
 
 # Results
@@ -112,32 +121,35 @@ if(FALSE) save(portugal, file='portugal.RData')
 ## Statistical Summaries of Predictor Variables
 
 ```{r}
-head(portugal)
+hist(portugal$children)
 ```
 
 
 ## Model Results
 
 ```{r}
-model1 <- glm(children ~ literacy + ageMarried, data = portugal, family = poisson)
+init_model <- glm(children ~ literacy + ageMarried + region, data = portugal, family = poisson)
 
-knitr::kable(exp(summary(model1)$coef[,1:2]), digits = 3)
-
-plot_summs(model1, exp=T, omit.coefs=NULL)
+# knitr::kable(exp(summary(init_model)$coef[,1:2]), digits = 3)
+# 
+# plot_summs(init_model, exp=T, omit.coefs=NULL)
 ```
 
 ```{r}
-model2 <- glm(children ~ literacy + ageMarried + region, data = portugal, family = poisson)
+# model with confounder
+conf_model <- glm(children ~ literacy + ageMarried + region + sons, data = portugal, family = poisson)
 
-knitr::kable(exp(summary(model2)$coef[,1:2]), digits = 3)
-
-plot_summs(model2, exp=T, omit.coefs=NULL)
+# knitr::kable(exp(summary(conf_model)$coef[,1:2]), digits = 3)
+# 
+# plot_summs(conf_model, exp=T, omit.coefs=NULL)
 ```
 
-
+```{r}
+anova(init_model, conf_model)
+```
 
 ```{r}
-boxplot(portugal$children ~ portugal$ageMarried + portugal$literacy, horizontal =T,
+boxplot(portugal$children ~ portugal$ageMarried + portugal$literacy, horizontal = T,
 xlab="num children",
 ylab="", las=1,
 cex.axis=0.75, cex.lab=0.75)
@@ -158,50 +170,60 @@ cex.axis=0.75, cex.lab=0.75)
 ```
 
 ```{r}
-model3 <- glm(children ~ literacy*ageMarried + region, data = portugal, family = poisson)
+int_model <- glm(children ~ literacy*ageMarried + region + sons, data = portugal, family = poisson)
 
-knitr::kable(exp(summary(model3)$coef[,1:2]), digits = 3)
-
-plot_summs(model3, exp=T, omit.coefs=NULL)
+# knitr::kable(exp(summary(int_model)$coef[,1:2]), digits = 3)
+# 
+# plot_summs(int_model, exp=T, omit.coefs=NULL)
 ```
 
 ```{r}
-# age offset
-portugal$logAge <- log(portugal$age)
-
-model4 <- glm(children ~ offset(logAge) + literacy*ageMarried + region, data = portugal, family = poisson)
-
-knitr::kable(exp(summary(model4)$coef[,1:2]), digits = 3)
-
+# Checking 
+anova(conf_model, int_model)
 ```
 
 ```{r}
-# age offset
+int_model2 <- glm(children ~ ageMarried + literacy*region + sons, data = portugal, family = poisson)
+
+# knitr::kable(exp(summary(int_model2)$coef[,1:2]), digits = 3)
+# 
+# plot_summs(int_model2, exp=T, omit.coefs=NULL)
+```
+
+```{r}
+# Checking 
+anova(conf_model, int_model2)
+```
+
+
+```{r}
+# yrs since married offset
 portugal$logYrsMarried <- log(pmax(1, portugal$monthsSinceM)/12)
 
-model5 <- glm(children ~ offset(logYrsMarried) + literacy*ageMarried + region, data = portugal, family = poisson)
+yrsOff_model <- glm(children ~ offset(logYrsMarried) + literacy + ageMarried + region + sons, data = portugal, family = poisson)
 
-knitr::kable(exp(summary(model5)$coef[,1:2]), digits = 3)
-
-```
-
-
-```{r}
-plot_summs(model3, model4, model5, exp=T, omit.coefs=F, model.names=c("w/out offset", "w/ age offset", "w/ yrs married offset"))
+# knitr::kable(exp(summary(yrsOff_model)$coef[,1:2]), digits = 3)
 ```
 
 ```{r}
-m <- aggregate(d$nv,
-by=list(d$type, d$region),
-mean)
-v <- aggregate(d$nv,
-by=list(d$type, d$region),
-var)
+plot_summs(conf_model, yrsOff_model, exp=T, omit.coefs=F, model.names=c("w/out offset", "w/ yrs married offset"))
+```
+
+
+
+```{r}
+m <- aggregate(portugal$children, by=list(portugal$ageMarried, portugal$literacy), mean)
+v <- aggregate(portugal$children, by=list(portugal$ageMarried, portugal$literacy), var)
+
 tab <- cbind(m, v[,3])
-knitr::kable(tab, digits=2,
-col.names=c("Institution",
-"Region", "Mean", "Variance"))
+knitr::kable(tab, digits=2, col.names=c("AgeMarried", "Literacy", "Mean", "Variance"))
 ```
+
+```{r}
+dispersion_ratio <- summary(yrsOff_model)$deviance / summary(yrsOff_model)$df.residual
+dispersion_ratio
+```
+
 
 
 ## Discussion of Modelling Process
