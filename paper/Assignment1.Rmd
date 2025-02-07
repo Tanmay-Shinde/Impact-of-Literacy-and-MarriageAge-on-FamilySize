@@ -1,0 +1,217 @@
+---
+title: "Investigating the Effect of Literacy and Marriage Age on Family Size"
+author: "Ariza Hossain, Tanmay Shinde"
+date: "February 07, 2024"
+output: 
+  pdf_document:
+    number_sections: true
+    toc: true
+    toc_depth: 2
+bibliography: references.bib
+thanks: "Code and data are available at: [EffectOfLiteracyAndMarriageAgeOnFamilySize](https://github.com/Tanmay-Shinde/Impact-of-Literacy-and-MarriageAge-on-FamilySize)"
+urlcolor: blue
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# install.packages("jtools")
+library(jtools)
+```
+
+```{r dataDownload, include=FALSE}
+pUrl = 'http://wfs.dhsprogram.com/pt/ptsr01.dat'
+pName = file.path(tempdir(), 'portugal.dat')
+if(!file.exists(pName)) {
+  download.file(pUrl, pName)
+}
+
+datNames = rbind(
+		age=c(45,2),
+		ageMarried=c(149,2), 
+		monthsSinceM = c(157,4),
+#		failedPregnancies=c(421,2),
+#		failedPregStill=c(423,2),
+#		failedPregSpAb=c(425,2),
+		pregnancies=c(433,2),
+		children=c(435,2),
+		sons=c(443,2),
+#		firstBirthInterval = c(479,2),
+		region = c(641,2),
+		literacy = c(649,2)
+)
+		colnames(datNames ) = c('start','len')
+		datNames = cbind(startm1=datNames[,1]-1,datNames, sum=apply(datNames, 1,sum))
+		cbind(datNames[-1,1] , datNames[seq(1, nrow(datNames)-1),4])
+		datNames[-1,1] = datNames[-1,2] - datNames[seq(1, nrow(datNames)-1),4]
+		dWidths = as.vector(t(datNames[,c(1,3)]))
+		dNames = paste(rep(rownames(datNames), rep(2, nrow(datNames))),
+  	rep(c( "junk",""), nrow(datNames)), sep="") 
+		
+		dNames = dNames[dWidths > 0]
+		dWidths = dWidths[dWidths > 0]
+		
+		formats = list(
+			ageMarried = data.frame(code=1:7,  label=c(0,15,18,20,22,25,30)),
+			region = data.frame(code=1:5, 
+				label=c('lisbon','porto','20k+', '10-20k', 'lt10k')),
+			literacy = data.frame(code=1:2, label=c('yes','no')),
+			firstBirthInterval = data.frame(
+					code = 1:8,
+					label = c(
+							'lt0','0-7', '8-11','12-23',
+							'24-35','36-47','48-59','60-Inf'
+							)
+					)
+		)
+
+	
+
+		formats$ageMarried$label = 
+  	paste(formats$ageMarried$label, 'to',
+  	c(formats$ageMarried$label[-1], 'Inf'), sep='')
+  	formats$ageMarried = rbind(formats$ageMarried, data.frame(code=88, label='never'))
+
+   
+  portugal = read.fwf(
+    pName,
+    dWidths, col.names=dNames,
+    header=FALSE)
+  
+  portugal = portugal[,grep("junk$", names(portugal), invert=TRUE)]
+
+for(D in intersect(names(portugal), names(formats))){
+  		portugal[[D]] = factor(portugal[[D]],
+  			levels=formats[[D]]$code, 
+				labels=formats[[D]]$label)
+}
+portugal$ageMarried = relevel(portugal$ageMarried, '22to25')
+portugal$region = relevel(portugal$region, 'lt10k')
+
+if(FALSE) save(portugal, file='portugal.RData')
+```
+
+# Introduction {#intro}
+
+## Literature Review and Importance of Study
+
+## Research Objective and Statistical Overview
+
+
+# Methods {#methods}
+
+## Statistical Model and Justification
+
+## Model Overview
+
+
+# Results
+
+## Statistical Summaries of Predictor Variables
+
+```{r}
+head(portugal)
+```
+
+
+## Model Results
+
+```{r}
+model1 <- glm(children ~ literacy + ageMarried, data = portugal, family = poisson)
+
+knitr::kable(exp(summary(model1)$coef[,1:2]), digits = 3)
+
+plot_summs(model1, exp=T, omit.coefs=NULL)
+```
+
+```{r}
+model2 <- glm(children ~ literacy + ageMarried + region, data = portugal, family = poisson)
+
+knitr::kable(exp(summary(model2)$coef[,1:2]), digits = 3)
+
+plot_summs(model2, exp=T, omit.coefs=NULL)
+```
+
+
+
+```{r}
+boxplot(portugal$children ~ portugal$ageMarried + portugal$literacy, horizontal =T,
+xlab="num children",
+ylab="", las=1,
+cex.axis=0.75, cex.lab=0.75)
+```
+
+```{r}
+boxplot(portugal$children ~ portugal$ageMarried + portugal$region, horizontal =T,
+xlab="num children",
+ylab="", las=1,
+cex.axis=0.75, cex.lab=0.75)
+```
+
+```{r}
+boxplot(portugal$children ~ portugal$literacy + portugal$region, horizontal = T,
+xlab="num children",
+ylab="", las=1,
+cex.axis=0.75, cex.lab=0.75)
+```
+
+```{r}
+model3 <- glm(children ~ literacy*ageMarried + region, data = portugal, family = poisson)
+
+knitr::kable(exp(summary(model3)$coef[,1:2]), digits = 3)
+
+plot_summs(model3, exp=T, omit.coefs=NULL)
+```
+
+```{r}
+# age offset
+portugal$logAge <- log(portugal$age)
+
+model4 <- glm(children ~ offset(logAge) + literacy*ageMarried + region, data = portugal, family = poisson)
+
+knitr::kable(exp(summary(model4)$coef[,1:2]), digits = 3)
+
+```
+
+```{r}
+# age offset
+portugal$logYrsMarried <- log(pmax(1, portugal$monthsSinceM)/12)
+
+model5 <- glm(children ~ offset(logYrsMarried) + literacy*ageMarried + region, data = portugal, family = poisson)
+
+knitr::kable(exp(summary(model5)$coef[,1:2]), digits = 3)
+
+```
+
+
+```{r}
+plot_summs(model3, model4, model5, exp=T, omit.coefs=F, model.names=c("w/out offset", "w/ age offset", "w/ yrs married offset"))
+```
+
+```{r}
+m <- aggregate(d$nv,
+by=list(d$type, d$region),
+mean)
+v <- aggregate(d$nv,
+by=list(d$type, d$region),
+var)
+tab <- cbind(m, v[,3])
+knitr::kable(tab, digits=2,
+col.names=c("Institution",
+"Region", "Mean", "Variance"))
+```
+
+
+## Discussion of Modelling Process
+
+
+# Conclusion
+
+## Interpretation of Model Results
+
+## Comparison of Model Effects with Existing Literature
+
+## Closing Remarks
+
