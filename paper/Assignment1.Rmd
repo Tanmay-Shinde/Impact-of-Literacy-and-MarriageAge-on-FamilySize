@@ -1,7 +1,7 @@
 ---
 title: "Investigating the Effect of Literacy and Marriage Age on Family Size"
 author: "Ariza Hossain, Tanmay Shinde"
-date: "February 07, 2024"
+date: "February 09, 2024"
 output: 
   pdf_document:
     number_sections: true
@@ -18,7 +18,10 @@ urlcolor: blue
 #| message: false
 
 # install.packages("jtools")
+# install.packages("kableExtra")
 library(jtools)
+library(dplyr)
+library(kableExtra)
 ```
 
 ```{r dataDownload, include=FALSE}
@@ -97,37 +100,95 @@ if(FALSE) save(portugal, file='portugal.RData')
 
 ## Literature Review and Importance of Study
 
-Understanding the relationship between literacy, age at marriage, and family size is crucial for addressing key societal challenges. Population growth remains a pressing issue, particularly in regions with high fertility rates. Studies have shown that improved literacy rates and delayed marriage can contribute to population control by reducing overall fertility. Moreover, smaller family sizes are associated with better child health outcomes due to increased parental investment per child, leading to improved nutrition, education, and healthcare access. From an economic perspective, a population with a larger proportion of working-age adults—facilitated by smaller family sizes—can drive economic growth by enhancing workforce productivity and reducing dependency ratios. Additionally, promoting female education and delaying marriage are powerful tools for advancing gender equality, empowering women to pursue education and career opportunities, and improving their decision-making autonomy within households. These factors highlight the relevance of this study in informing policies aimed at fostering sustainable development, improved public health, and social equity. !--- make this shorter and relevant ciattions for this. May be not mention population because that is not a concern for portugal ---!
+Understanding the relationship between literacy, age at marriage, and family size is crucial for addressing key societal challenges. Studies show that smaller family sizes are associated with better child health outcomes due to increased parental investment per child, leading to improved nutrition, education, and healthcare access. People who grew up in relatively small families tend to have higher educational attainment, earn more income, and accumulate greater household wealth [@Parr2012]. From an economic perspective, a population with a larger proportion of working-age adults—facilitated by smaller family sizes—can drive economic growth by enhancing workforce productivity and reducing dependency ratios [@Bloom2003]. Additionally, promoting female education and delaying marriage are powerful tools for advancing gender equality, empowering women to pursue education and career opportunities, and improving their decision-making autonomy within households [@Bates2007]. These factors highlight the relevance of this study in informing policies aimed at fostering sustainable development, improved public health, and social equity. 
 
-Previous research has established strong correlations between literacy, marriage age, and fertility outcomes. One study found that literate women were significantly more likely to use contraception (54% vs. 43%, p = 0.008), undergo sterilization (94% vs. 44%, p < 0.001), and have fewer children. Additionally, they demonstrated better family planning knowledge and a reduced preference for male children (51% vs. 73%, p = 0.029). Another study found that rural women expressed a higher preference for large families, with 32.1% desiring six or more children. Education played a crucial role in fertility preferences, as 72% of women and 83.6% of men who favored smaller families had at least a secondary education. A third study highlighted the impact of early marriage, showing that women who married before the age of 20 had, on average, one more child than those who married between 25 and 29. Early marriage was linked to higher fertility due to prolonged childbearing periods and lower contraceptive efficiency. Regression analysis indicated that family size was influenced by fecundity, contraceptive use, and social selection factors, reinforcing the association between early marriage and larger families. NEED TO ADD CITATIONS
+Previous research has established strong correlations between literacy, marriage age, and fertility outcomes. One study found that literate women were significantly more likely to use contraception (54% vs. 43%, p = 0.008), undergo sterilization (94% vs. 44%, p < 0.001), and have fewer children. Additionally, they demonstrated better family planning knowledge and a reduced preference for male children (51% vs. 73%, p = 0.029) [@Suliankatchi2012]. Another study found that rural women expressed a higher preference for large families, with 32.1% desiring six or more children. Education played a crucial role in fertility preferences, as 72% of women and 83.6% of men who favored smaller families had at least a secondary education [@Kahansim2013]. A third study highlighted the impact of early marriage, showing that women who married before the age of 20 had, on average, one more child than those who married between 25 and 29. Early marriage was linked to higher fertility due to prolonged childbearing periods and lower contraceptive efficiency. Regression analysis indicated that family size was influenced by fecundity, contraceptive use, and social selection factors, reinforcing the association between early marriage and larger families [@Busfield1972].
 
 ## Research Objective and Statistical Overview
 
-Building on these findings, our study aims to investigate the extent to which literacy and age at marriage influence family size in Portugal, a developing economy. Specifically, we seek to determine whether higher literacy rates and delayed marriage lead to smaller family sizes and to what degree these factors interact. By synthesizing insights from prior research which were also mostly based in developing economies, we aim to contribute to a more nuanced understanding of how educational and marital timing interventions can shape reproductive behavior and demographic trends in Portugal. To achieve this, we will employ a generalized linear model (GLM) to analyze the impact of literacy and marriage age on family size. This statistical approach will allow us to quantify the effects of these variables while controlling for other relevant factors such as socioeconomic status, geographic location, and gender composition of children. By examining the coefficients derived from the model, we can assess the relative influence of literacy and marital timing on fertility outcomes, providing evidence-based recommendations for policymakers and public health initiatives.
+Building on these findings, our study aims to investigate the extent to which literacy and age at marriage influence family size in Portugal, a developing economy and is that varies between urban and rural areas. Specifically, we seek to determine whether higher literacy rates and delayed marriage lead to smaller family sizes and to what degree these factors interact. By synthesizing insights from prior research which were also mostly based in developing economies, we aim to contribute to a more nuanced understanding of how educational and marital timing interventions can shape reproductive behavior and demographic trends in Portugal. To achieve this, we will employ a generalized linear model (GLM) to analyze the impact of literacy and marriage age on family size. This statistical approach will allow us to quantify the effects of these variables while controlling for other relevant factors such as socioeconomic status, geographic location, and gender composition of children. By examining the coefficients derived from the model, we can assess the relative influence of literacy and marital timing on fertility outcomes, providing evidence-based recommendations for policymakers and public health initiatives.
 
 
 # Methods {#methods}
 
-Our study will use the number of children per woman as the main response variable. The key predictor variables will be the age at marriage, literacy rate, and region. These predictors are included because previous research suggests that literacy and delayed marriage reduce fertility, and regional differences can capture cultural and economic factors influencing family size.
+Our study will use the number of children per woman as the main response variable. The key predictor variables will be the age of marriage, literacy rate, region, and number of sons. These predictors are included based on our literature review which suggests that literacy and delayed marriage reduce fertility, and regional differences can capture cultural and economic factors influencing family size while the desire to have more sons may increase the family size. This study utilizes data from the Portuguese Fertility Survey (1979-80) [@data]. We use the statistical programming language R [@citeR] to perform our analysis using various helpful packages like, readr [@readr], tidyverse [@tdv], and jtools [@jtools]. Further, libraries like ggplot2 [@ggp2], knitr [@knitr], and kable [@ke] were used to analyze the data and create visualizations and tables.
+
 To model the relationship between these variables, we will initially fit a Poisson generalized linear model (GLM). A Poisson model is appropriate because our response variable consists of count data, which are non-negative and right-skewed. We assume that the number of children born to each woman follows a homogeneous Poisson process, meaning that each birth is independent and uniformly distributed over time. This assumption justifies using the Poisson distribution, which is commonly applied to model count data in similar demographic studies.
 
-Next, we will conduct exploratory data analysis to assess the relationships between predictors and their potential interactions. We will use box plots to visualize how two predictors together influence the number of children and whether interactions need to be incorporated into the model. Additionally, we will check for overdispersion by examining the standard errors and estimates of the predictors. If overdispersion is present, meaning the variance is greater than the mean, we will account for it by fitting a negative binomial model, which allows for additional variability in count data. The negative binomial model is particularly useful because it introduces a dispersion parameter, enabling it to handle overdispersed data more effectively than the Poisson model.
+We will further conduct exploratory data analysis and assess the relationships between predictors and the need for potential interaction variables. We will also check for overdispersion by examining the means and variances of each group of predictors to ensure they satisfy the assumption of the Poisson model. Furthermore, we will analyze scatter plots to determine if our data is comparable across different predictor variables. This will help us decide whether an offset term should be included in our model to account for any differences.
 
-Furthermore, we will analyze scatter plots to determine if our data is comparable across different predictor variables. This will help us decide whether an offset term should be included in our model to account for exposure differences among women. Finally, we will compare model fits using statistical criteria, selecting the model that best accounts for overdispersion, interaction effects, and any additional structural patterns in the data. By systematically evaluating these considerations, we aim to produce a robust and interpretable model for understanding the influence of literacy and marriage age on family size.  Add stuff about how we will confirm variations and statistical significance
+To refine our model, we will fit multiple models with different combinations of predictors, offsets and interaction terms based on our exploratory findings. To determine the best model, we will use the partial F-test to compare nested models and assess how much additional variation is explained by each new predictor or interaction term. The partial F-test will help us determine whether including an interaction term significantly improves model fit or if a simpler model should be preferred. By systematically comparing models, we aim to select the one that provides the best explanatory power while maintaining statistical significance.
+
+Finally, we will compare model fits using statistical criteria, selecting the model that best accounts for overdispersion, interaction effects, and any additional structural patterns in the data. We will look at the confidence intervals and their overlap with zero along with the z-values for each predictor to confirm if our predictors are statistically significant. By systematically evaluating these considerations, we aim to produce a robust and interpretable model for understanding the influence of literacy and marriage age on family size.  
 
 
 # Results
 
 ## Statistical Summaries of Predictor Variables
 
-```{r}
-hist(portugal$children)
+```{r fig. fig-hist-numchild, fig.cap="Histogram showing the distribution of the outcome variable, number of children per family. The data exhibit variability in family size, with most families clustering around lower values. This visualization provides insight into the overall spread and central tendency of family sizes in the sample."}
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-cap: "Histogram showing the distribution of the outcome variable, number of children per family. The data exhibit variability in family size, with most families clustering around lower values. This visualization provides insight into the overall spread and central tendency of family sizes in the sample."
+
+hist(portugal$children, main = "Histogram of the Number of Children per Family", xlab = "Number of Children")
+abline(v = mean(portugal$children), col = "red", lwd = 2, lty = 2)
+```
+
+Figure 1 shows a right-skewed distribution of the number of children per family, with most families having 0 or 1 children, and fewer families having larger numbers. The dashed line shows the mean number of children per family in Portugal in the 1980s which is about 2.26. The spread is wide with a variance of 3.46 and we can see that some families having more than 10 children, though such cases are rare, indicating potential outliers. The long right tail suggests that while most families have a small number of children, a few have significantly more. This distribution is relevant in our study as it is the response variable that will be modeled as a function of literacy and the age a woman married. It helps us understand the trend surrounding the number of children people had in Portugal in the 1980s.
+
+```{r, results='hide'}
+#| echo: false
+#| warning: false
+#| message: false
+
+mean(portugal$children)
+var(portugal$children)
+min(portugal$children)
+max(portugal$children)
+```
+
+Figure 2 shows the univariate summaries of the predictor variables. For the number of sons per family, the data is right-skewed, with the mean around 1 son per family, indicating that most families have fewer sons, but a few have significantly more. The age at marriage distribution is more uniform, with the majority of observations (mode) falling within the 22-25 age range, and the mean marriage age is between 20-22, reflecting a tendency toward earlier marriages. The region variable is right-skewed as well, with most observations (mode) coming from regions with populations of fewer than 10,000, suggesting a concentration in smaller areas. Finally, the literacy data is highly imbalanced, with the majority of observations indicating "yes" (over 4000), and a smaller proportion of "no" responses (less than 1000), pointing to a skewed distribution toward higher literacy in the population.
+
+```{r, fig.width=10, fig.height=10}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-hist-preds
+#| fig-cap: "Histogram of the number of sons per family, with the mean indicated by a red dashed line. Bar plots display the distribution of age at marriage, regional family distribution by population size, and literacy status of subjects, providing insights into key demographic characteristics of the surveyed population."
+
+par(mfrow = c(2,2))
+
+# hist(exp(portugal$logYrsMarried), main = "Histogram of Number of Years the Subjects have been Married", xlab = "Years")
+# abline(v = mean(exp(portugal$logYrsMarried)), col = "red", lwd = 2, lty = 2)
+
+hist(portugal$sons, main = "Histogram of Number of Sons per Family", xlab = "Number of Sons")
+abline(v = mean(portugal$sons), col = "red", lwd = 2, lty = 2)
+
+categories <- factor(portugal$ageMarried, levels = c("0to15", "15to18", "18to20", "20to22", "22to25", "25to30", "30toInf"))
+plot(categories, main="Distribution of Age at Marriage of Subjects", xlab="Age at Marriage", ylab="Frequency")
+
+regioncategories <- factor(portugal$region, levels = c("lt10k", "10-20k", "20k+", "lisbon", "porto"))
+plot(regioncategories, main="Distribution of Families Across Region Categories", xlab="Region by Population", ylab="Frequency")
+
+plot(portugal$literacy, main="Distribution of Literacy Status of Subjects", xlab="Literacy Status", ylab="Frequency")
 ```
 
 
-## Model Results
+## Modeling Process
+
+To investigate the factors influencing the number of children per family, we first fit a Poisson regression model using literacy, age at marriage, and region as predictor variables:
+
+$$\mathbf{num\_children=\beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region}$$
+
+The initial model allows us to assess the main effects of these predictors on the response variable (number of children). The exponentiated coefficients provide the rate ratios, which indicate how each predictor affects the expected count of children.
 
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 init_model <- glm(children ~ literacy + ageMarried + region, data = portugal, family = poisson)
 
 # knitr::kable(exp(summary(init_model)$coef[,1:2]), digits = 3)
@@ -135,7 +196,15 @@ init_model <- glm(children ~ literacy + ageMarried + region, data = portugal, fa
 # plot_summs(init_model, exp=T, omit.coefs=NULL)
 ```
 
+We then introduce the variable sons as a potential confounder, creating an updated model:
+
+$$\mathbf{num\_children=\beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region+\beta_4sons}$$
+
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 # model with confounder
 conf_model <- glm(children ~ literacy + ageMarried + region + sons, data = portugal, family = poisson)
 
@@ -144,32 +213,45 @@ conf_model <- glm(children ~ literacy + ageMarried + region + sons, data = portu
 # plot_summs(conf_model, exp=T, omit.coefs=NULL)
 ```
 
-```{r}
+To evaluate whether adding sons significantly improves model fit, we conduct a partial F test between the model with the confounder variable and our initial model. The result of the ANOVA test suggests that the larger model is very significant with a large chi-square statistic and a highly significant p-value (p < 2.2e-16), suggesting that including sons significantly reduces residual deviance, indicating a better model fit.
+
+```{r, include=FALSE}
+#| echo: false
+#| warning: false
+#| message: false
+
 anova(init_model, conf_model)
 ```
 
-```{r}
+Next, we use boxplots to visually explore relationships between predictor variables and the number of children. By examining trends across groups, we can assess whether certain predictors interact with each other. If the spread of the number of children differs across literacy levels within different regions, for example, it suggests the need for an interaction term in the model.
+
+```{r fig-box-int, fig.height=10, fig.width=10}
+#| echo: false
+#| warning: false
+#| message: false
+#| fig-cap: "Boxplot of Number of Children per Family by Age at Marriage and Region Population Category, Stratified by Literacy Status. Visualizing differences in the mean number of children per family across age at marriage and region population categories when stratified by literacy status. The observed variation suggests the need to include interaction terms between age at marriage and literacy as well as literacy and region in the analysis."
+
+par(mfrow=c(2,1))
+
 boxplot(portugal$children ~ portugal$ageMarried + portugal$literacy, horizontal = T,
-xlab="num children",
-ylab="", las=1,
+xlab="Number of Children", ylab="", las=1, main="Number of Children per Family by Age at Marriage, Stratified by Literacy Status",
 cex.axis=0.75, cex.lab=0.75)
-```
 
-```{r}
-boxplot(portugal$children ~ portugal$ageMarried + portugal$region, horizontal =T,
-xlab="num children",
-ylab="", las=1,
-cex.axis=0.75, cex.lab=0.75)
-```
-
-```{r}
 boxplot(portugal$children ~ portugal$literacy + portugal$region, horizontal = T,
-xlab="num children",
-ylab="", las=1,
+xlab="Number of Children", ylab="", las=1, main="Number of Children per Family by Region Population Category, Stratified by Literacy Status",
 cex.axis=0.75, cex.lab=0.75)
 ```
 
+From Figure 3, we can see that there is a difference in the mean number of children per family across the same age at marriage or region population category when the literacy status is varied. This suggests that we need to consider interaction terms between ageMarried and literacy as well as literacy and region. Thus, next we consider two models with the above mentioned interaction terms:
+
+1. Interaction between literacy and age at marriage:
+$$\mathbf{num\_children=\beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region+\beta_4sons+\beta_5literacy*age\_married}$$
+
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 int_model <- glm(children ~ literacy*ageMarried + region + sons, data = portugal, family = poisson)
 
 # knitr::kable(exp(summary(int_model)$coef[,1:2]), digits = 3)
@@ -177,12 +259,14 @@ int_model <- glm(children ~ literacy*ageMarried + region + sons, data = portugal
 # plot_summs(int_model, exp=T, omit.coefs=NULL)
 ```
 
-```{r}
-# Checking 
-anova(conf_model, int_model)
-```
+2. Interaction between literacy and region:
+$$\mathbf{num\_children=\beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region+\beta_4sons+\beta_5literacy*region}$$
 
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 int_model2 <- glm(children ~ ageMarried + literacy*region + sons, data = portugal, family = poisson)
 
 # knitr::kable(exp(summary(int_model2)$coef[,1:2]), digits = 3)
@@ -190,13 +274,37 @@ int_model2 <- glm(children ~ ageMarried + literacy*region + sons, data = portuga
 # plot_summs(int_model2, exp=T, omit.coefs=NULL)
 ```
 
-```{r}
+The partial F tests for both models show no significant improvement (p = 0.9084 for the model with interaction between literacy and ageMarried) and (p = 0.5229 for the model with interaction between literacy and region), suggesting that the interaction terms are not meaningful and do not lead to a significant chunk of the variation in the dataset being explained by the models with the interaction terms. This suggests that literacy effects do not vary meaningfully by region or age at marriage.
+
+```{r, include=FALSE}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Checking 
+anova(conf_model, int_model)
+```
+
+```{r, include=FALSE}
+#| echo: false
+#| warning: false
+#| message: false
+
 # Checking 
 anova(conf_model, int_model2)
 ```
 
+To account for the varying durations of marriage, we introduce an offset term to the model to see if it helps us explain more variation in the data. To do this, we first convert the monthsSinceMarried variable in the dataset to yearsSinceMarried and then take the log of that. We use logYrsMarried i.e. the log of number of years for whcih the subject has been married. Thus giving us the new model:
+
+$$\mathbf{num\_children=offset(logYrsMarried) + \beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region+\beta_4sons}$$
+
+However, we notice that the inclusion of the offset terms leads to all our coefficients becoming non-significant. Thus, we choose to avoid the offset term and go ahead with the model with literacy, ageMarried, region, and number of sons as predictors.
 
 ```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
 # yrs since married offset
 portugal$logYrsMarried <- log(pmax(1, portugal$monthsSinceM)/12)
 
@@ -205,13 +313,27 @@ yrsOff_model <- glm(children ~ offset(logYrsMarried) + literacy + ageMarried + r
 # knitr::kable(exp(summary(yrsOff_model)$coef[,1:2]), digits = 3)
 ```
 
+From the model summary for this model, we see that most of the coefficients for the ageMarried category are not statistically significant. Thus, we group them together into new categories: Below20, 20to30, Above30. The original categories contained smaller sample sizes, particularly in certain age groups, which might have led to unstable or insignificant results. By consolidating these age groups into broader, more meaningful ranges, we ensure that each category has a larger sample size, leading to more reliable coefficients.
+
 ```{r}
-plot_summs(conf_model, yrsOff_model, exp=T, omit.coefs=F, model.names=c("w/out offset", "w/ yrs married offset"))
+#| echo: false
+#| warning: false
+#| message: false
+
+portugal$ageMarried <- ifelse(portugal$ageMarried %in% c("0to15", "15to18", "18to20"), "Below20", ifelse(portugal$ageMarried %in% c("20to22", "22to25", "25to30"), "20to30", ifelse(portugal$ageMarried %in% c("30toInf"), "Above30", NA)))
+
+conf_model2 <- glm(children ~ literacy + ageMarried + region + sons, data = portugal, family = poisson)
 ```
 
+Next, we check for overdispersion in the model by comparing the means and variances across groups of predictor variables to check and see if they are roughly equal and satisfy the assumption of the Poisson model. Figure 4 shows us that the mean and variances for each group are roughly equal and thus there is no need to consider overdispersion in our model. The dispersion ratio also comes out to 0.829 suggesting that the ratio of residual deviance to residual degrees of freedom is close to 1 and a Poisson model is the appropriate choice.
 
+```{r fig.cap="Mean and variances across each group of predictor variable"}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-disp-check
+#| fig-cap: "Checking Overdispersion"
 
-```{r}
 m <- aggregate(portugal$children, by=list(portugal$ageMarried, portugal$literacy), mean)
 v <- aggregate(portugal$children, by=list(portugal$ageMarried, portugal$literacy), var)
 
@@ -219,21 +341,70 @@ tab <- cbind(m, v[,3])
 knitr::kable(tab, digits=2, col.names=c("AgeMarried", "Literacy", "Mean", "Variance"))
 ```
 
-```{r}
-dispersion_ratio <- summary(yrsOff_model)$deviance / summary(yrsOff_model)$df.residual
+```{r, include=FALSE}
+#| echo: false
+#| warning: false
+#| message: false
+
+dispersion_ratio <- summary(conf_model2)$deviance / summary(conf_model2)$df.residual
 dispersion_ratio
 ```
 
+Thus, our modeling process demonstrates that literacy, age at marriage, region, and number of sons significantly impact the number of children. The inclusion of sons as a confounder greatly improves model fit, while interaction terms do not add substantial explanatory power. The dispersion analysis confirms that our Poisson regression model is well-specified for this dataset.
 
+## Model Results
 
-## Discussion of Modelling Process
+Figure 5 shows the model summary for our final model: 
+
+$$\mathbf{num\_children=\beta_0+\beta_1literacy+\beta_2age\_married+\beta_3region+\beta_4sons}$$
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-model-results
+#| fig-cap: "Summary of Generalized Linear Model (GLM) Results: Coefficients, Standard Errors, Z-values, and P-values for the Predictors"
+
+knitr::kable(summary(conf_model2)$coef, digits = 3)
+
+# plot_summs(conf_model, yrsOff_model, exp=T, omit.coefs=F, model.names=c("w/out offset", "w/ yrs married offset"))
+```
 
 
 # Conclusion
 
 ## Interpretation of Model Results
 
+Our findings confirm that marriage age is a significant predictor of family size. Holding all other factors constant, women who married before 20 are expected to have 5.2% more children on average compared to those who married between 20 to 30 years old. Conversely, women who married between 25 to 30 years old are expected to have 23.6% fewer children on average than those in the 20-30 age group. These results suggest that earlier marriage leads to higher fertility, likely due to prolonged childbearing periods.
+
+Our final model further indicates that illiteracy is associated with an increased expected number of children (~23% more) compared to literate women, reinforcing the importance of education in shaping fertility choices. Regional differences also play a key role, with fewer children observed in Lisbon and other cities with populations over 10,000 compared to rural areas and small towns. Lastly, having more sons is strongly associated with larger total family sizes, suggesting a continued preference for male children.
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(knitr)
+
+results <- data.frame(
+  Variable = c("(Intercept)", "literacyno", "ageMarriedAbove30", "ageMarriedBelow20", 
+               "regionlisbon", "regionporto", "region20k+", "region10-20k", "sons"),
+  Estimate = c(0.336, 0.209, -0.269, 0.051, -0.170, 0.039, -0.136, -0.049, 0.312),
+  `Exp(Estimate)` = round(exp(c(0.336, 0.209, -0.269, 0.051, -0.170, 0.039, -0.136, -0.049, 0.312)), 3)
+)
+
+kable(results, format = "markdown", col.names = c("Variable", "Estimate", "Exp(Estimate)"))
+```
+
 ## Comparison of Model Effects with Existing Literature
+
+These findings align with existing literature. Prior studies have established that literate women are more likely to use contraception, have smaller families, and exhibit less preference for male children (Suliankatchi et al., 2012). Additionally, research has shown that rural women tend to prefer larger families, with education playing a critical role in shaping fertility preferences (Kahansim et al., 2013). Our results support these trends, highlighting that early marriage, lower education levels, and rural residence contribute to higher fertility rates, consistent with past research (Busfield, 1972).
 
 ## Closing Remarks
 
+From a policy perspective, these findings emphasize the need for targeted interventions in rural areas and among women with lower education levels. Policymakers can leverage these insights to promote female education, discourage early marriage, and enhance family planning programs, ultimately contributing to reduced fertility rates and improved maternal and child health outcomes.
+
+\newpage
+
+# References
